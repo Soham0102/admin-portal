@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rising Education — Admin Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f9ff; min-height: 100vh; }
+
+    /* Login screen */
+    #login-screen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+    }
+    .login-card {
+      background: #fff; border-radius: 20px; padding: 40px;
+      box-shadow: 0 8px 32px rgba(8,145,178,0.12);
+      border: 1px solid #bae6fd; width: 100%; max-width: 380px; text-align: center;
+    }
+    .login-card h1 { color: #0891b2; font-size: 22px; margin-bottom: 6px; }
+    .login-card p { color: #6b7280; font-size: 13px; margin-bottom: 24px; }
+
+    /* Main app */
+    #app { display: none; }
+    .header {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white; padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header h1 { font-size: 18px; font-weight: 800; }
+    .header span { font-size: 12px; opacity: 0.8; }
+    .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+    /* Stats bar */
+    .stats { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+    .stat-card {
+      background: #fff; border: 1px solid #bae6fd; border-radius: 14px;
+      padding: 16px 24px; flex: 1; min-width: 140px; text-align: center;
+      box-shadow: 0 2px 8px rgba(8,145,178,0.08);
+    }
+    .stat-card .num { font-size: 28px; font-weight: 800; color: #0891b2; }
+    .stat-card .lbl { font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-top: 4px; }
+
+    /* Add email section */
+    .card {
+      background: #fff; border: 1px solid #bae6fd; border-radius: 16px;
+      padding: 20px; margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(8,145,178,0.06);
+    }
+    .card h2 { font-size: 15px; font-weight: 700; color: #0c4a6e; margin-bottom: 14px; }
+
+    .input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    input[type="text"], input[type="password"], textarea {
+      flex: 1; min-width: 220px; padding: 10px 14px;
+      border: 2px solid #bae6fd; border-radius: 10px;
+      font-size: 14px; outline: none; transition: border 0.15s;
+    }
+    input:focus, textarea:focus { border-color: #0891b2; }
+    textarea { min-height: 80px; resize: vertical; width: 100%; font-family: inherit; }
+
+    button {
+      padding: 10px 20px; border-radius: 10px; border: none;
+      font-weight: 700; font-size: 13px; cursor: pointer; transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.85; }
+    .btn-primary { background: #0891b2; color: white; }
+    .btn-danger  { background: #ef4444; color: white; padding: 6px 12px; font-size: 12px; border-radius: 8px; }
+    .btn-logout  { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); font-size: 12px; padding: 6px 14px; }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #e0f2fe; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #0891b2; color: white; padding: 10px 14px; text-align: left; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 10px 14px; border-bottom: 1px solid #e0f2fe; color: #374151; }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: #f0f9ff; }
+    tr:hover td { background: #e0f2fe; }
+
+    /* Search */
+    .search-row { display: flex; gap: 10px; margin-bottom: 12px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #0891b2; color: white; padding: 12px 20px;
+      border-radius: 12px; font-size: 13px; font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 999;
+      display: none; animation: fadeIn 0.3s;
+    }
+    .toast.error { background: #ef4444; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
+    .badge { display: inline-block; background: #e0f2fe; color: #0891b2; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+    .hint { font-size: 11px; color: #9ca3af; margin-top: 6px; }
+  </style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>🎓 Rising Education</h1>
+    <p>Admin Panel — College Predictor Access</p>
+    <input type="password" id="pwd-input" placeholder="Enter admin password" style="width:100%;margin-bottom:12px" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="btn-primary" style="width:100%" onclick="doLogin()">Login →</button>
+    <p id="login-err" style="color:#ef4444;font-size:12px;margin-top:8px;display:none">Wrong password</p>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <div class="header">
+    <div>
+      <h1>🎓 Rising Education — Admin Panel</h1>
+      <span>College Predictor Access Manager</span>
+    </div>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="container">
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="num" id="stat-total">—</div>
+        <div class="lbl">Total Authorized</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" id="stat-today">—</div>
+        <div class="lbl">Added Today</div>
+      </div>
+    </div>
+
+    <!-- Add emails -->
+    <div class="card">
+      <h2>➕ Add Email Access</h2>
+      <textarea id="add-input" placeholder="Enter one email per line:&#10;student1@gmail.com&#10;student2@gmail.com&#10;student3@gmail.com"></textarea>
+      <p class="hint">You can paste multiple emails — one per line</p>
+      <div style="margin-top:10px">
+        <button class="btn-primary" onclick="addEmails()">Grant Access</button>
+      </div>
+    </div>
+
+    <!-- Email list -->
+    <div class="card">
+      <h2>📋 Authorized Emails</h2>
+      <div class="search-row">
+        <input type="text" id="search-input" placeholder="Search email..." oninput="filterTable()" style="max-width:300px" />
+        <button class="btn-primary" onclick="loadEmails()">↻ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table id="emails-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Email</th>
+              <th>Added On</th>
+              <th>Downloads Used</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="emails-body">
+            <tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:20px">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = ''  // same origin
+  let adminPwd = ''
+  let allEmails = []
+
+  // ── Login ──────────────────────────────────────────────────────────────────
+  function doLogin() {
+    const pwd = document.getElementById('pwd-input').value
+    if (!pwd) return
+    fetch(`${API}/api/emails`, { headers: { 'x-admin-password': pwd } })
+      .then(r => {
+        if (r.status === 401) {
+          document.getElementById('login-err').style.display = 'block'
+          return
+        }
+        adminPwd = pwd
+        localStorage.setItem('admin_pwd', pwd)
+        document.getElementById('login-screen').style.display = 'none'
+        document.getElementById('app').style.display = 'block'
+        loadEmails()
+      })
+      .catch(() => showToast('Server unreachable', true))
+  }
+
+  function logout() {
+    localStorage.removeItem('admin_pwd')
+    adminPwd = ''
+    document.getElementById('login-screen').style.display = 'flex'
+    document.getElementById('app').style.display = 'none'
+    document.getElementById('pwd-input').value = ''
+  }
+
+  // Auto-login if password saved
+  window.onload = () => {
+    const saved = localStorage.getItem('admin_pwd')
+    if (saved) { document.getElementById('pwd-input').value = saved; doLogin() }
+  }
+
+  // ── Load emails ────────────────────────────────────────────────────────────
+  function loadEmails() {
+    fetch(`${API}/api/emails`, { headers: { 'x-admin-password': adminPwd } })
+      .then(r => r.json())
+      .then(data => {
+        allEmails = data
+        renderTable(data)
+        updateStats(data)
+      })
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById('emails-body')
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:20px">No authorized emails yet</td></tr>'
+      return
+    }
+    tbody.innerHTML = data.map((e, i) => `
+      <tr>
+        <td><span class="badge">${i+1}</span></td>
+        <td>${e.email}</td>
+        <td>${e.addedAt ? new Date(e.addedAt).toLocaleString('en-IN') : '—'}</td>
+        <td><span class="badge">${e.downloads ?? 0} / 5</span></td>
+        <td><button class="btn-danger" onclick="removeEmail('${e.email}')">Remove</button></td>
+      </tr>
+    `).join('')
+  }
+
+  function filterTable() {
+    const q = document.getElementById('search-input').value.toLowerCase()
+    renderTable(allEmails.filter(e => e.email.includes(q)))
+  }
+
+  function updateStats(data) {
+    document.getElementById('stat-total').textContent = data.length
+    const today = new Date().toDateString()
+    const todayCount = data.filter(e => e.addedAt && new Date(e.addedAt).toDateString() === today).length
+    document.getElementById('stat-today').textContent = todayCount
+  }
+
+  // ── Add emails ─────────────────────────────────────────────────────────────
+  function addEmails() {
+    const raw = document.getElementById('add-input').value.trim()
+    if (!raw) return
+    const emails = raw.split('\n').map(e => e.trim()).filter(e => e.includes('@'))
+    if (emails.length === 0) { showToast('No valid emails found', true); return }
+
+    fetch(`${API}/api/emails`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPwd },
+      body: JSON.stringify({ emails })
+    })
+    .then(r => r.json())
+    .then(res => {
+      showToast(`✅ ${res.added} added, ${res.existing} already existed`)
+      document.getElementById('add-input').value = ''
+      loadEmails()
+    })
+    .catch(() => showToast('Error adding emails', true))
+  }
+
+  // ── Remove email ───────────────────────────────────────────────────────────
+  function removeEmail(email) {
+    if (!confirm(`Remove access for ${email}?`)) return
+    fetch(`${API}/api/emails/${encodeURIComponent(email)}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-password': adminPwd }
+    })
+    .then(r => r.json())
+    .then(() => { showToast(`❌ ${email} removed`); loadEmails() })
+    .catch(() => showToast('Error removing', true))
+  }
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast')
+    t.textContent = msg
+    t.className = 'toast' + (isError ? ' error' : '')
+    t.style.display = 'block'
+    setTimeout(() => t.style.display = 'none', 3000)
+  }
+</script>
+</body>
+</html>
