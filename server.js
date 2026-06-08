@@ -83,5 +83,10 @@ app.post('/api/verify', async (req, res) => {
   } catch (e) { res.status(500).json({ authorized: false }) }
 })
 
+// ── Serve index.html for root path ────────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'))
+})
+
 // ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => console.log(`🚀 Admin panel running on http://localhost:${PORT}`))
