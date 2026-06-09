@@ -93,6 +93,15 @@
 
     .badge { display: inline-block; background: #e0f2fe; color: #0891b2; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
     .hint { font-size: 11px; color: #9ca3af; margin-top: 6px; }
+
+    /* Modal */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; }
+    .modal.open { display: flex; }
+    .modal-content { background: white; padding: 24px; border-radius: 16px; max-width: 400px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+    .modal-content h3 { color: #0891b2; margin-bottom: 16px; font-size: 16px; }
+    .modal-content input { width: 100%; padding: 10px 14px; border: 2px solid #bae6fd; border-radius: 10px; font-size: 14px; margin-bottom: 16px; }
+    .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-secondary { background: #e5e7eb; color: #374151; }
   </style>
 </head>
 <body>
@@ -157,6 +166,7 @@
               <th>Email</th>
               <th>Added On</th>
               <th>Downloads Used</th>
+              <th>Limit</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -172,10 +182,23 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Modal for editing limit -->
+<div class="modal" id="edit-modal">
+  <div class="modal-content">
+    <h3>Edit Download Limit</h3>
+    <input type="number" id="limit-input" min="0" placeholder="Enter new limit" />
+    <div class="modal-buttons">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveLimitChange()">Save</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const API = ''  // same origin
   let adminPwd = ''
   let allEmails = []
+  let editingEmail = null
 
   // ── Login ──────────────────────────────────────────────────────────────────
   function doLogin() {
@@ -224,7 +247,7 @@
   function renderTable(data) {
     const tbody = document.getElementById('emails-body')
     if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:20px">No authorized emails yet</td></tr>'
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:20px">No authorized emails yet</td></tr>'
       return
     }
     tbody.innerHTML = data.map((e, i) => `
@@ -232,7 +255,8 @@
         <td><span class="badge">${i+1}</span></td>
         <td>${e.email}</td>
         <td>${e.addedAt ? new Date(e.addedAt).toLocaleString('en-IN') : '—'}</td>
-        <td><span class="badge">${e.downloads ?? 0} / 5</span></td>
+        <td><span class="badge">${e.downloads ?? 0} / ${e.downloadLimit ?? 5}</span></td>
+        <td><input type="number" value="${e.downloadLimit ?? 5}" min="0" onchange="updateLimitQuick(this, '${e.email}')" style="width:70px;padding:6px;border:1px solid #bae6fd;border-radius:6px;font-size:12px" /></td>
         <td><button class="btn-danger" onclick="removeEmail('${e.email}')">Remove</button></td>
       </tr>
     `).join('')
@@ -281,6 +305,41 @@
     .then(r => r.json())
     .then(() => { showToast(`❌ ${email} removed`); loadEmails() })
     .catch(() => showToast('Error removing', true))
+  }
+
+  // ── Update download limit ──────────────────────────────────────────────────
+  function updateLimitQuick(input, email) {
+    const limit = parseInt(input.value) || 5
+    fetch(`${API}/api/emails/${encodeURIComponent(email)}/limit`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPwd },
+      body: JSON.stringify({ downloadLimit: limit })
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res.error) { showToast(`Error: ${res.error}`, true); loadEmails(); return }
+      showToast(`✅ Limit updated to ${limit}`)
+      loadEmails()
+    })
+    .catch(() => showToast('Error updating limit', true))
+  }
+
+  function openEditModal(email, currentLimit) {
+    editingEmail = email
+    document.getElementById('limit-input').value = currentLimit || 5
+    document.getElementById('edit-modal').classList.add('open')
+  }
+
+  function closeModal() {
+    document.getElementById('edit-modal').classList.remove('open')
+    editingEmail = null
+  }
+
+  function saveLimitChange() {
+    if (!editingEmail) return
+    const limit = parseInt(document.getElementById('limit-input').value) || 5
+    updateLimitQuick({ value: limit }, editingEmail)
+    closeModal()
   }
 
   // ── Toast ──────────────────────────────────────────────────────────────────

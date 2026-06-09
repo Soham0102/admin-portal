@@ -73,6 +73,22 @@ app.delete('/api/emails/:email', adminAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }) }
 })
 
+// UPDATE download limit
+app.patch('/api/emails/:email/limit', adminAuth, async (req, res) => {
+  try {
+    const email = decodeURIComponent(req.params.email).toLowerCase()
+    const { downloadLimit } = req.body
+    if (typeof downloadLimit !== 'number' || downloadLimit < 0) 
+      return res.status(400).json({ error: 'Invalid download limit' })
+    
+    const result = await getCol().updateOne(
+      { email },
+      { $set: { downloadLimit } }
+    )
+    res.json({ modified: result.modifiedCount })
+  } catch (e) { res.status(500).json({ error: e.message }) }
+})
+
 // ── PUBLIC: verify email (called from main website) ───────────────────────────
 app.post('/api/verify', async (req, res) => {
   try {
