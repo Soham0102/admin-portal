@@ -8,7 +8,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', sans-serif; background: #f0f9ff; min-height: 100vh; }
 
-    /* Login screen */
     #login-screen {
       display: flex; align-items: center; justify-content: center;
       min-height: 100vh;
@@ -21,7 +20,6 @@
     .login-card h1 { color: #0891b2; font-size: 22px; margin-bottom: 6px; }
     .login-card p { color: #6b7280; font-size: 13px; margin-bottom: 24px; }
 
-    /* Main app */
     #app { display: none; }
     .header {
       background: linear-gradient(135deg, #0891b2, #06b6d4);
@@ -32,7 +30,6 @@
     .header span { font-size: 12px; opacity: 0.8; }
     .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
 
-    /* Stats bar */
     .stats { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
     .stat-card {
       background: #fff; border: 1px solid #bae6fd; border-radius: 14px;
@@ -42,7 +39,6 @@
     .stat-card .num { font-size: 28px; font-weight: 800; color: #0891b2; }
     .stat-card .lbl { font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-top: 4px; }
 
-    /* Add email section */
     .card {
       background: #fff; border: 1px solid #bae6fd; border-radius: 16px;
       padding: 20px; margin-bottom: 20px;
@@ -68,7 +64,6 @@
     .btn-danger  { background: #ef4444; color: white; padding: 6px 12px; font-size: 12px; border-radius: 8px; }
     .btn-logout  { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); font-size: 12px; padding: 6px 14px; }
 
-    /* Table */
     .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #e0f2fe; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th { background: #0891b2; color: white; padding: 10px 14px; text-align: left; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
@@ -77,10 +72,8 @@
     tr:nth-child(even) td { background: #f0f9ff; }
     tr:hover td { background: #e0f2fe; }
 
-    /* Search */
     .search-row { display: flex; gap: 10px; margin-bottom: 12px; }
 
-    /* Toast */
     .toast {
       position: fixed; bottom: 24px; right: 24px;
       background: #0891b2; color: white; padding: 12px 20px;
@@ -94,7 +87,6 @@
     .badge { display: inline-block; background: #e0f2fe; color: #0891b2; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
     .hint { font-size: 11px; color: #9ca3af; margin-top: 6px; }
 
-    /* Modal */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; }
     .modal.open { display: flex; }
     .modal-content { background: white; padding: 24px; border-radius: 16px; max-width: 400px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
@@ -141,29 +133,29 @@
       </div>
     </div>
 
-    <!-- Add emails -->
+    <!-- Add mobile numbers -->
     <div class="card">
-      <h2>➕ Add Email Access</h2>
-      <textarea id="add-input" placeholder="Enter one email per line:&#10;student1@gmail.com&#10;student2@gmail.com&#10;student3@gmail.com"></textarea>
-      <p class="hint">You can paste multiple emails — one per line</p>
+      <h2>➕ Add Mobile Number Access</h2>
+      <textarea id="add-input" placeholder="Enter one mobile number per line:&#10;9876543210&#10;9123456789&#10;8001234567"></textarea>
+      <p class="hint">Ek line mein ek number — multiple numbers ek saath add kar sakte ho</p>
       <div style="margin-top:10px">
-        <button class="btn-primary" onclick="addEmails()">Grant Access</button>
+        <button class="btn-primary" onclick="addMobiles()">Grant Access</button>
       </div>
     </div>
 
-    <!-- Email list -->
+    <!-- Users list -->
     <div class="card">
-      <h2>📋 Authorized Emails</h2>
+      <h2>📋 Authorized Mobile Numbers</h2>
       <div class="search-row">
-        <input type="text" id="search-input" placeholder="Search email..." oninput="filterTable()" style="max-width:300px" />
-        <button class="btn-primary" onclick="loadEmails()">↻ Refresh</button>
+        <input type="text" id="search-input" placeholder="Search mobile number..." oninput="filterTable()" style="max-width:300px" />
+        <button class="btn-primary" onclick="loadUsers()">↻ Refresh</button>
       </div>
       <div class="table-wrap">
         <table id="emails-table">
           <thead>
             <tr>
               <th>#</th>
-              <th>Email</th>
+              <th>Mobile Number</th>
               <th>Added On</th>
               <th>Downloads Used</th>
               <th>Limit</th>
@@ -171,7 +163,7 @@
             </tr>
           </thead>
           <tbody id="emails-body">
-            <tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:20px">Loading…</td></tr>
+            <tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:20px">Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -195,10 +187,10 @@
 </div>
 
 <script>
-  const API = ''  // same origin
+  const API = ''
   let adminPwd = ''
-  let allEmails = []
-  let editingEmail = null
+  let allUsers = []
+  let editingMobile = null
 
   // ── Login ──────────────────────────────────────────────────────────────────
   function doLogin() {
@@ -214,7 +206,7 @@
         localStorage.setItem('admin_pwd', pwd)
         document.getElementById('login-screen').style.display = 'none'
         document.getElementById('app').style.display = 'block'
-        loadEmails()
+        loadUsers()
       })
       .catch(() => showToast('Server unreachable', true))
   }
@@ -227,18 +219,17 @@
     document.getElementById('pwd-input').value = ''
   }
 
-  // Auto-login if password saved
   window.onload = () => {
     const saved = localStorage.getItem('admin_pwd')
     if (saved) { document.getElementById('pwd-input').value = saved; doLogin() }
   }
 
-  // ── Load emails ────────────────────────────────────────────────────────────
-  function loadEmails() {
+  // ── Load users ─────────────────────────────────────────────────────────────
+  function loadUsers() {
     fetch(`${API}/api/emails`, { headers: { 'x-admin-password': adminPwd } })
       .then(r => r.json())
       .then(data => {
-        allEmails = data
+        allUsers = data
         renderTable(data)
         updateStats(data)
       })
@@ -247,98 +238,92 @@
   function renderTable(data) {
     const tbody = document.getElementById('emails-body')
     if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:20px">No authorized emails yet</td></tr>'
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:20px">No authorized users yet</td></tr>'
       return
     }
-    tbody.innerHTML = data.map((e, i) => `
+    tbody.innerHTML = data.map((u, i) => `
       <tr>
         <td><span class="badge">${i+1}</span></td>
-        <td>${e.email}</td>
-        <td>${e.addedAt ? new Date(e.addedAt).toLocaleString('en-IN') : '—'}</td>
-        <td><span class="badge">${e.downloads ?? 0} / ${e.downloadLimit ?? 5}</span></td>
-        <td><input type="number" value="${e.downloadLimit ?? 5}" min="0" onchange="updateLimitQuick(this, '${e.email}')" style="width:70px;padding:6px;border:1px solid #bae6fd;border-radius:6px;font-size:12px" /></td>
-        <td><button class="btn-danger" onclick="removeEmail('${e.email}')">Remove</button></td>
+        <td>${u.mobile}</td>
+        <td>${u.addedAt ? new Date(u.addedAt).toLocaleString('en-IN') : '—'}</td>
+        <td><span class="badge">${u.downloads ?? 0} / ${u.downloadLimit ?? 5}</span></td>
+        <td><input type="number" value="${u.downloadLimit ?? 5}" min="0" onchange="updateLimitQuick(this, '${u.mobile}')" style="width:70px;padding:6px;border:1px solid #bae6fd;border-radius:6px;font-size:12px" /></td>
+        <td><button class="btn-danger" onclick="removeUser('${u.mobile}')">Remove</button></td>
       </tr>
     `).join('')
   }
 
   function filterTable() {
     const q = document.getElementById('search-input').value.toLowerCase()
-    renderTable(allEmails.filter(e => e.email.includes(q)))
+    renderTable(allUsers.filter(u => u.mobile.includes(q)))
   }
 
   function updateStats(data) {
     document.getElementById('stat-total').textContent = data.length
     const today = new Date().toDateString()
-    const todayCount = data.filter(e => e.addedAt && new Date(e.addedAt).toDateString() === today).length
+    const todayCount = data.filter(u => u.addedAt && new Date(u.addedAt).toDateString() === today).length
     document.getElementById('stat-today').textContent = todayCount
   }
 
-  // ── Add emails ─────────────────────────────────────────────────────────────
-  function addEmails() {
+  // ── Add mobile numbers ─────────────────────────────────────────────────────
+  function addMobiles() {
     const raw = document.getElementById('add-input').value.trim()
     if (!raw) return
-    const emails = raw.split('\n').map(e => e.trim()).filter(e => e.includes('@'))
-    if (emails.length === 0) { showToast('No valid emails found', true); return }
+    const mobiles = raw.split('\n').map(m => m.trim().replace(/\D/g, '')).filter(m => m.length >= 10)
+    if (mobiles.length === 0) { showToast('No valid mobile numbers found', true); return }
 
     fetch(`${API}/api/emails`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPwd },
-      body: JSON.stringify({ emails })
+      body: JSON.stringify({ emails: mobiles })
     })
     .then(r => r.json())
     .then(res => {
       showToast(`✅ ${res.added} added, ${res.existing} already existed`)
       document.getElementById('add-input').value = ''
-      loadEmails()
+      loadUsers()
     })
-    .catch(() => showToast('Error adding emails', true))
+    .catch(() => showToast('Error adding numbers', true))
   }
 
-  // ── Remove email ───────────────────────────────────────────────────────────
-  function removeEmail(email) {
-    if (!confirm(`Remove access for ${email}?`)) return
-    fetch(`${API}/api/emails/${encodeURIComponent(email)}`, {
+  // ── Remove user ────────────────────────────────────────────────────────────
+  function removeUser(mobile) {
+    if (!confirm(`Remove access for ${mobile}?`)) return
+    fetch(`${API}/api/emails/${encodeURIComponent(mobile)}`, {
       method: 'DELETE',
       headers: { 'x-admin-password': adminPwd }
     })
     .then(r => r.json())
-    .then(() => { showToast(`❌ ${email} removed`); loadEmails() })
+    .then(() => { showToast(`❌ ${mobile} removed`); loadUsers() })
     .catch(() => showToast('Error removing', true))
   }
 
   // ── Update download limit ──────────────────────────────────────────────────
-  function updateLimitQuick(input, email) {
+  function updateLimitQuick(input, mobile) {
     const limit = parseInt(input.value) || 5
-    fetch(`${API}/api/emails/${encodeURIComponent(email)}/limit`, {
+    fetch(`${API}/api/emails/${encodeURIComponent(mobile)}/limit`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPwd },
       body: JSON.stringify({ downloadLimit: limit })
     })
     .then(r => r.json())
     .then(res => {
-      if (res.error) { showToast(`Error: ${res.error}`, true); loadEmails(); return }
+      if (res.error) { showToast(`Error: ${res.error}`, true); loadUsers(); return }
       showToast(`✅ Limit updated to ${limit}`)
-      loadEmails()
+      loadUsers()
     })
     .catch(() => showToast('Error updating limit', true))
   }
 
-  function openEditModal(email, currentLimit) {
-    editingEmail = email
-    document.getElementById('limit-input').value = currentLimit || 5
-    document.getElementById('edit-modal').classList.add('open')
-  }
-
   function closeModal() {
     document.getElementById('edit-modal').classList.remove('open')
-    editingEmail = null
+    editingMobile = null
   }
 
   function saveLimitChange() {
-    if (!editingEmail) return
+    if (!editingMobile) return
     const limit = parseInt(document.getElementById('limit-input').value) || 5
-    updateLimitQuick({ value: limit }, editingEmail)
+    updateLimitQuick({ value: limit }, editingMobile)
     closeModal()
   }
 
