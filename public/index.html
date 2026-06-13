@@ -143,6 +143,16 @@
       </div>
     </div>
 
+    <!-- Remove mobile numbers (bulk) -->
+    <div class="card" style="border-color:#fecaca;">
+      <h2 style="color:#b91c1c;">🗑️ Remove Mobile Number Access</h2>
+      <textarea id="remove-input" placeholder="Enter one mobile number per line:&#10;9876543210&#10;9123456789" style="border-color:#fecaca;"></textarea>
+      <p class="hint">Ek line mein ek number — multiple numbers ek saath remove kar sakte ho</p>
+      <div style="margin-top:10px">
+        <button class="btn-danger" style="padding:10px 20px;font-size:13px;" onclick="bulkRemove()">Revoke Access</button>
+      </div>
+    </div>
+
     <!-- Users list -->
     <div class="card">
       <h2>📋 Authorized Mobile Numbers</h2>
@@ -286,7 +296,7 @@
     .catch(() => showToast('Error adding numbers', true))
   }
 
-  // ── Remove user ────────────────────────────────────────────────────────────
+  // ── Remove single user (table button) ────────────────────────────────────
   function removeUser(mobile) {
     if (!confirm(`Remove access for ${mobile}?`)) return
     fetch(`${API}/api/emails/${encodeURIComponent(mobile)}`, {
@@ -296,6 +306,30 @@
     .then(r => r.json())
     .then(() => { showToast(`❌ ${mobile} removed`); loadUsers() })
     .catch(() => showToast('Error removing', true))
+  }
+
+  // ── Bulk remove ────────────────────────────────────────────────────────────
+  async function bulkRemove() {
+    const raw = document.getElementById('remove-input').value.trim()
+    if (!raw) return
+    const mobiles = raw.split('\n').map(m => m.trim().replace(/\D/g, '')).filter(m => m.length >= 10)
+    if (mobiles.length === 0) { showToast('No valid mobile numbers found', true); return }
+    if (!confirm(`Remove access for ${mobiles.length} number(s)?`)) return
+
+    let removed = 0, failed = 0
+    for (const mobile of mobiles) {
+      try {
+        const r = await fetch(`${API}/api/emails/${encodeURIComponent(mobile)}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-password': adminPwd }
+        })
+        const res = await r.json()
+        if (res.deleted) removed++; else failed++
+      } catch { failed++ }
+    }
+    showToast(`❌ ${removed} removed${failed ? `, ${failed} not found` : ''}`)
+    document.getElementById('remove-input').value = ''
+    loadUsers()
   }
 
   // ── Update download limit ──────────────────────────────────────────────────
